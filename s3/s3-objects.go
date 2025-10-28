@@ -64,45 +64,7 @@ func (basics BucketBasics) ListObjectVersions(ctx context.Context, bucket string
 }
 
 // DeleteObjects deletes a list of objects from a bucket.
-func (basics BucketBasics) DeleteObjects(ctx context.Context, bucketName string, objectKeys []string) error {
-	var objectIds []types.ObjectIdentifier
-	for _, key := range objectKeys {
-		objectIds = append(objectIds, types.ObjectIdentifier{Key: aws.String(key)})
-	}
-	output, err := basics.S3Client.DeleteObjects(ctx, &s3.DeleteObjectsInput{
-		Bucket: aws.String(bucketName),
-		Delete: &types.Delete{Objects: objectIds, Quiet: aws.Bool(true)},
-	})
-	if err != nil || len(output.Errors) > 0 {
-		log.Printf("Error deleting objects from bucket %s.\n", bucketName)
-		if err != nil {
-			var noBucket *types.NoSuchBucket
-			if errors.As(err, &noBucket) {
-				log.Printf("Bucket %s does not exist.\n", bucketName)
-				err = noBucket
-			}
-		} else if len(output.Errors) > 0 {
-			for _, outErr := range output.Errors {
-				log.Printf("%s: %s\n", *outErr.Key, *outErr.Message)
-			}
-			err = fmt.Errorf("%s", *output.Errors[0].Message)
-		}
-	} else {
-		for _, delObjs := range output.Deleted {
-			err = s3.NewObjectNotExistsWaiter(basics.S3Client).Wait(
-				ctx, &s3.HeadObjectInput{Bucket: aws.String(bucketName), Key: delObjs.Key}, time.Minute)
-			if err != nil {
-				log.Printf("Failed attempt to wait for object %s to be deleted.\n", *delObjs.Key)
-			} else {
-				log.Printf("Deleted %s.\n", *delObjs.Key)
-			}
-		}
-	}
-	return err
-}
-
-// DeleteObjects deletes a list of objects from a bucket.
-func (basics BucketBasics) DeleteObjects2(ctx context.Context, bucket string, objects []types.ObjectIdentifier, bypassGovernance bool) error {
+func (basics BucketBasics) DeleteObjects(ctx context.Context, bucket string, objects []types.ObjectIdentifier, bypassGovernance bool) error {
 	if len(objects) == 0 {
 		return nil
 	}

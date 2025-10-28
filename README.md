@@ -6,3 +6,4 @@ Some samples of AWS SDK go V2
 
 [Code examples for SDK for Go V2](https://docs.aws.amazon.com/code-library/latest/ug/go_2_code_examples.html)
 
+[Amazon S3 code examples for the SDK for Go V2](https://github.com/awsdocs/aws-doc-sdk-examples/tree/main/gov2/s3)
