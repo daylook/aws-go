@@ -1,0 +1,72 @@
+package main
+
+import (
+	"context"
+	"errors"
+	"fmt"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/smithy-go"
+)
+
+type S3Applicaion struct {
+	s3Client *s3.Client
+}
+
+func NewS3Client(sdkConfig aws.Config) *s3.Client {
+	return s3.NewFromConfig(sdkConfig)
+}
+
+// This example uses the default settings specified in your shared credentials
+// and config files.
+func main() {
+	ctx := context.Background()
+
+	sdkConfig, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		fmt.Println("Couldn't load default configuration. Have you set up your AWS account?")
+		fmt.Println(err)
+		return
+	}
+
+	s3Client := s3.NewFromConfig(sdkConfig)
+
+	s3App := &S3Applicaion{
+		s3Client: s3Client,
+	}
+
+	buckets, err := s3App.ListBuckets(ctx)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if buckets != nil {
+		fmt.Println("Your buckets:")
+		for _, b := range buckets {
+			fmt.Printf("* %s (created on %v)\n", aws.ToString(b.Name), aws.ToTime(b.CreationDate))
+		}
+	}
+}
+
+func (s3App *S3Applicaion) ListBuckets(ctx context.Context) ([]types.Bucket, error) {
+
+	result, err := s3App.s3Client.ListBuckets(ctx, &s3.ListBucketsInput{})
+	if err != nil {
+		var ae smithy.APIError
+		if errors.As(err, &ae) && ae.ErrorCode() == "AccessDenied" {
+			return nil, fmt.Errorf("you don't have permission to list buckets for this account")
+		} else {
+			return nil, fmt.Errorf("couldn't list buckets for your account. Here's why: %v", err)
+		}
+	}
+
+	if len(result.Buckets) == 0 {
+		fmt.Println("You don't have any buckets!")
+		return nil, nil
+	}
+	return result.Buckets, nil
+}
