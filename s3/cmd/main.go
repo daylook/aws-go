@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -58,14 +59,14 @@ func (s3App *S3Applicaion) ListBuckets(ctx context.Context) ([]types.Bucket, err
 	if err != nil {
 		var ae smithy.APIError
 		if errors.As(err, &ae) && ae.ErrorCode() == "AccessDenied" {
-			return nil, fmt.Errorf("you don't have permission to list buckets for this account")
+			return nil, fmt.Errorf("don't have permission to list buckets")
 		} else {
-			return nil, fmt.Errorf("couldn't list buckets for your account. Here's why: %v", err)
+			return nil, fmt.Errorf("couldn't list buckets: %v", err)
 		}
 	}
 
 	if len(result.Buckets) == 0 {
-		fmt.Println("You don't have any buckets!")
+		log.Println("You don't have any buckets!")
 		return nil, nil
 	}
 	return result.Buckets, nil
