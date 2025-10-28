@@ -13,8 +13,8 @@ import (
 	"github.com/aws/smithy-go"
 )
 
-type S3Applicaion struct {
-	s3Client *s3.Client
+type BucketBasics struct {
+	S3Client *s3.Client
 }
 
 func NewS3Client(sdkConfig aws.Config) *s3.Client {
@@ -35,11 +35,11 @@ func main() {
 
 	s3Client := s3.NewFromConfig(sdkConfig)
 
-	s3App := &S3Applicaion{
-		s3Client: s3Client,
+	s3App := &BucketBasics{
+		S3Client: s3Client,
 	}
 
-	buckets, err := s3App.ListBuckets(ctx)
+	buckets, err := s3App.ListBucketsSimple(ctx)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -53,9 +53,9 @@ func main() {
 	}
 }
 
-func (s3App *S3Applicaion) ListBuckets(ctx context.Context) ([]types.Bucket, error) {
+func (basics *BucketBasics) ListBucketsSimple(ctx context.Context) ([]types.Bucket, error) {
 
-	result, err := s3App.s3Client.ListBuckets(ctx, &s3.ListBucketsInput{})
+	result, err := basics.S3Client.ListBuckets(ctx, &s3.ListBucketsInput{})
 	if err != nil {
 		var ae smithy.APIError
 		if errors.As(err, &ae) && ae.ErrorCode() == "AccessDenied" {
