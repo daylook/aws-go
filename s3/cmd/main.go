@@ -28,7 +28,7 @@ func main() {
 
 	sdkConfig, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		fmt.Println("Couldn't load default configuration. Have you set up your AWS account?")
+		fmt.Println("couldn't load default configuration")
 		fmt.Println(err)
 		return
 	}
@@ -46,7 +46,7 @@ func main() {
 	}
 
 	if buckets != nil {
-		fmt.Println("Your buckets:")
+		fmt.Println("existing buckets:")
 		for _, b := range buckets {
 			fmt.Printf("* %s (created on %v)\n", aws.ToString(b.Name), aws.ToTime(b.CreationDate))
 		}
@@ -66,7 +66,7 @@ func (basics *BucketBasics) ListBucketsSimple(ctx context.Context) ([]types.Buck
 	}
 
 	if len(result.Buckets) == 0 {
-		log.Println("You don't have any buckets!")
+		log.Println("you don't have any buckets!")
 		return nil, nil
 	}
 	return result.Buckets, nil
